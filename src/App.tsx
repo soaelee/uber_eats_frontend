@@ -1,17 +1,14 @@
-import { gql, useQuery } from '@apollo/client';
+import { gql, useQuery, useReactiveVar } from '@apollo/client';
 import React from 'react';
+import { isLoggedInVar } from './apollo';
+import { LoggedInRouter } from './routers/logged-in-router';
 import { LoggedOutRouter } from './routers/logged-out-router';
 
-//@client: graphql server가 아닌 cache에 요청
-const IS_LOGGED_IN = gql`
-  {
-    isLoggedIn @client
-  }
-`
+
 function App() {
-  const {data} = useQuery(IS_LOGGED_IN);
-  console.log(data);
-  return <LoggedOutRouter/>;
+  const isLoggedIn = useReactiveVar(isLoggedInVar);
+  console.log(isLoggedIn);
+  return isLoggedIn? <LoggedInRouter/> : <LoggedOutRouter/>;
 }
 
 export default App;
