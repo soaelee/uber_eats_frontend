@@ -2,62 +2,75 @@ import { gql, useMutation } from '@apollo/client';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { FormError } from '../components/form-error';
-import { loginMutation, loginMutationVariables } from '../__api__/loginMutation';
-
-// const LOGIN_MUTATION = gql`
-//   mutation loginMutation($email: String!, $password: String!) {
-//     login(input: { email: $email, password: $password }) {
-//       ok
-//       error
-//       token
-//     }
-//   }
-// `;
+import { loginMu, loginMuVariables } from '../__api__/loginMu';
+import logo from '../images/logo.png';
+import { Button } from '../components/button';
+import { Link } from 'react-router-dom';
 
 const LOGIN_MUTATION = gql`
-  mutation loginMutation($loginInput: LoginInput!) {
-    login(input: $loginInput) {
+  mutation loginMu($input: LoginInput!) {
+    login(input: $input) {
       ok
       error
       token
     }
   }
 `;
+// output : data{login{token, error, ok}}
 
 interface ILoginForm {
   email: string;
   password: string;
 }
+
 export const Login = () => {
-  const { register, getValues, errors, handleSubmit } = useForm<ILoginForm>();
-  const [loginMutation, { loading, error, data }] = useMutation<loginMutation, loginMutationVariables>(LOGIN_MUTATION);
+  const { register, getValues, errors, handleSubmit, formState } = useForm<ILoginForm>({
+    mode: 'onChange',
+  });
+
+  const onCompleted = (data: loginMu) => {
+    const {
+      login: { ok, token },
+    } = data;
+    if (ok) {
+      console.log(token);
+    }
+  };
+  const [loginMu, { data: isLogin, loading }] = useMutation<loginMu, loginMuVariables>(LOGIN_MUTATION, {
+    onCompleted,
+  });
+
   const onSubmit = () => {
-    const { email, password } = getValues();
-    loginMutation({
-      variables: {
-        loginInput: {
-          email,
-          password,
+    if (!loading) {
+      //mutation을 한번만 호출
+      const { email, password } = getValues();
+      loginMu({
+        variables: {
+          input: {
+            email,
+            password,
+          },
         },
-      },
-    });
+      });
+    }
   };
   return (
-    <div className="bg-gray-800 h-screen flex items-center justify-center">
-      <div className="bg-white w-full max-w-lg pb-7 pt-10 rounded-lg text-center">
-        <h3 className="text-2xl text-gray-800">Log In</h3>
-        <form onSubmit={handleSubmit(onSubmit)} className="grid gap-3 mt-5 px-5">
+    <div className="h-screen flex items-center flex-col mt-10 lg:mt-28">
+      <div className="w-full max-w-screen-sm flex flex-col items-center px-5">
+        <img src={logo} alt="logo" className="w-52 mb-10" />
+        <h4 className="w-full text-left text-3xl font-medium">Welcome back</h4>
+        <form onSubmit={handleSubmit(onSubmit)} className="grid gap-3 mt-5 w-full mb-5">
           <input
             ref={register({ required: 'Email is required' })}
-            className="input"
             name="email"
             type="email"
             required
             placeholder="Email"
+            className="input"
           />
           {errors.email?.message && <FormError errormessage={errors.email?.message} />}
           <input
-            ref={register({ required: 'Password is required', minLength: 7 })}
+            ref={register({ required: 'Password is required', minLength: 3 })}
             name="password"
             type="password"
             required
@@ -65,9 +78,16 @@ export const Login = () => {
             placeholder="Password"
           />
           {errors.password?.message && <FormError errormessage={errors.password?.message} />}
-          {errors.password?.type === 'minLength' && <FormError errormessage={'Password musb be more thatn 7 chars'} />}
-          <button className="mt-3 btn">Log In</button>
+          {errors.password?.type === 'minLength' && <FormError errormessage={'Password musb be more thatn 3 chars'} />}
+          <Button canClick={formState.isValid} actionText="Log in" loading={loading} />
+          {isLogin?.login.error && <FormError errormessage={isLogin.login.error} />}
         </form>
+        <div>
+          New to Suber?{' '}
+          <Link to="/signup" className="text-lime-600 hover:underline">
+            Create an Account
+          </Link>
+        </div>
       </div>
     </div>
   );
