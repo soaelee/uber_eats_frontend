@@ -1,6 +1,28 @@
-import { spawn } from 'child_process';
+import { gql, useMutation } from '@apollo/client';
 import React from 'react';
 import { useForm } from 'react-hook-form';
+import { FormError } from '../components/form-error';
+import { loginMutation, loginMutationVariables } from '../__api__/loginMutation';
+
+// const LOGIN_MUTATION = gql`
+//   mutation loginMutation($email: String!, $password: String!) {
+//     login(input: { email: $email, password: $password }) {
+//       ok
+//       error
+//       token
+//     }
+//   }
+// `;
+
+const LOGIN_MUTATION = gql`
+  mutation loginMutation($loginInput: LoginInput!) {
+    login(input: $loginInput) {
+      ok
+      error
+      token
+    }
+  }
+`;
 
 interface ILoginForm {
   email: string;
@@ -8,8 +30,17 @@ interface ILoginForm {
 }
 export const Login = () => {
   const { register, getValues, errors, handleSubmit } = useForm<ILoginForm>();
+  const [loginMutation, { loading, error, data }] = useMutation<loginMutation, loginMutationVariables>(LOGIN_MUTATION);
   const onSubmit = () => {
-    console.log(getValues());
+    const { email, password } = getValues();
+    loginMutation({
+      variables: {
+        loginInput: {
+          email,
+          password,
+        },
+      },
+    });
   };
   return (
     <div className="bg-gray-800 h-screen flex items-center justify-center">
@@ -17,28 +48,24 @@ export const Login = () => {
         <h3 className="text-2xl text-gray-800">Log In</h3>
         <form onSubmit={handleSubmit(onSubmit)} className="grid gap-3 mt-5 px-5">
           <input
-            ref={register({ required: 'Email is required', minLength: 10 })}
+            ref={register({ required: 'Email is required' })}
             className="input"
             name="email"
             type="email"
             required
             placeholder="Email"
           />
-          {errors.email?.message && <span className="font-medium text-red-500 text-sm">{errors.email?.message}</span>}
+          {errors.email?.message && <FormError errormessage={errors.email?.message} />}
           <input
-            ref={register({ required: 'Password is required', minLength: 10 })}
+            ref={register({ required: 'Password is required', minLength: 7 })}
             name="password"
             type="password"
             required
             className="input"
             placeholder="Password"
           />
-          {errors.password?.message && (
-            <span className="text-red-500 font-medium text-sm">{errors.password?.message}</span>
-          )}
-          {errors.password?.type === 'minLength' && (
-            <span className="font-medium text-sm text-red-500">Password musb be more thatn 10 chars</span>
-          )}
+          {errors.password?.message && <FormError errormessage={errors.password?.message} />}
+          {errors.password?.type === 'minLength' && <FormError errormessage={'Password musb be more thatn 7 chars'} />}
           <button className="mt-3 btn">Log In</button>
         </form>
       </div>
