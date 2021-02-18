@@ -6,6 +6,9 @@ import { loginMu, loginMuVariables } from '../__api__/loginMu';
 import logo from '../images/logo.png';
 import { Button } from '../components/button';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
+import { authTokenVar, isLoggedInVar } from '../apollo';
+import { LOCALSTORAGE_TOKEN } from '../constants';
 
 const LOGIN_MUTATION = gql`
   mutation loginMu($input: LoginInput!) {
@@ -32,8 +35,10 @@ export const Login = () => {
     const {
       login: { ok, token },
     } = data;
-    if (ok) {
-      console.log(token);
+    if (ok && token) {
+      localStorage.setItem(LOCALSTORAGE_TOKEN, token);
+      authTokenVar(token);
+      isLoggedInVar(true);
     }
   };
   const [loginMu, { data: isLogin, loading }] = useMutation<loginMu, loginMuVariables>(LOGIN_MUTATION, {
@@ -56,12 +61,18 @@ export const Login = () => {
   };
   return (
     <div className="h-screen flex items-center flex-col mt-10 lg:mt-28">
+      <Helmet>
+        <title>Login | Suber Eats</title>
+      </Helmet>
       <div className="w-full max-w-screen-sm flex flex-col items-center px-5">
         <img src={logo} alt="logo" className="w-52 mb-10" />
         <h4 className="w-full text-left text-3xl font-medium">Welcome back</h4>
         <form onSubmit={handleSubmit(onSubmit)} className="grid gap-3 mt-5 w-full mb-5">
           <input
-            ref={register({ required: 'Email is required' })}
+            ref={register({
+              required: 'Email is required',
+              pattern: /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+            })}
             name="email"
             type="email"
             required
@@ -69,6 +80,7 @@ export const Login = () => {
             className="input"
           />
           {errors.email?.message && <FormError errormessage={errors.email?.message} />}
+          {errors.email?.type === 'pattern' && <FormError errormessage="Please enter a valid email" />}
           <input
             ref={register({ required: 'Password is required', minLength: 3 })}
             name="password"

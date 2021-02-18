@@ -1,12 +1,18 @@
 import { ApolloClient, InMemoryCache, makeVar } from '@apollo/client';
+import { LOCALSTORAGE_TOKEN } from './constants';
 
-export const isLoggedInVar = makeVar(false);
+const token = localStorage.getItem(LOCALSTORAGE_TOKEN);
+
+export const isLoggedInVar = makeVar(Boolean(token)); //false
+export const authTokenVar = makeVar(token); //null
+
+console.log(isLoggedInVar());
+console.log(authTokenVar());
 
 export const client = new ApolloClient({
   uri: 'http://localhost:4000/graphql',
-  cache: new InMemoryCache()
-})
-
+  cache: new InMemoryCache(),
+});
 
 // local state : graphql server(schema)에는 없지만 app에서는 다루는 field, state
 // ex: login, logout state, 다크모드, 음량(volume)
