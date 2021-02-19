@@ -6,6 +6,7 @@ import { NotFound } from '../pages/404';
 import { Restaurants } from '../pages/client/restaurants';
 import { ConfirmEmail } from '../pages/user/confirm-email';
 import { EditProfile } from '../pages/user/edit-profile';
+import { Search } from '../pages/user/search';
 
 const ClientRoutes = [
   <Route path="/" exact key={1}>
@@ -16,6 +17,9 @@ const ClientRoutes = [
   </Route>,
   <Route path="/edit-profile" exact key={3}>
     <EditProfile />
+  </Route>,
+  <Route path="/search" exact key={4}>
+    <Search />
   </Route>,
 ];
 

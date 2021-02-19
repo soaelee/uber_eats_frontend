@@ -1,6 +1,8 @@
 import { gql, useQuery } from '@apollo/client';
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { useForm } from 'react-hook-form';
+import { useHistory } from 'react-router-dom';
 import { Category } from '../../components/category';
 import { Restaurant } from '../../components/restaurant';
 import { restaurantsPageQuery, restaurantsPageQueryVariables } from '../../__api__/restaurantsPageQuery';
@@ -37,8 +39,14 @@ const RESTAURANTS_QUERY = gql`
   }
 `;
 
+interface IFormProps {
+  searchTerm: string;
+}
+
 export const Restaurants = () => {
+  const { register, handleSubmit, getValues } = useForm<IFormProps>();
   const [page, setPage] = useState(1);
+  const history = useHistory();
   const { data, loading } = useQuery<restaurantsPageQuery, restaurantsPageQueryVariables>(RESTAURANTS_QUERY, {
     variables: {
       input: {
@@ -47,6 +55,14 @@ export const Restaurants = () => {
     },
   });
 
+  const onSearchSubmit = () => {
+    const { searchTerm } = getValues();
+    console.log(searchTerm);
+    history.push({
+      pathname: '/search',
+      search: `?term=${searchTerm}`,
+    });
+  };
   const onClickNextPage = () => {
     setPage((page) => page + 1);
   };
@@ -57,11 +73,16 @@ export const Restaurants = () => {
   return (
     <div>
       <Helmet>
-        <title>Restaurants | Suber Eats</title>
+        <title>Home | Suber Eats</title>
       </Helmet>
-      <form className="bg-gray-800 w-full py-40 flex items-center justify-center">
+      <form
+        onSubmit={handleSubmit(onSearchSubmit)}
+        className="bg-gray-800 w-full py-40 flex items-center justify-center"
+      >
         <input
+          ref={register({ required: true, min: 2 })}
           type="Search"
+          name="searchTerm"
           className="input rounded-md border-0 w-6/12 md:w-4/12 lg:w-3/12"
           placeholder="Search Restaurants..."
         />
