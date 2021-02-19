@@ -4,10 +4,12 @@ import { useForm } from 'react-hook-form';
 import { FormError } from '../components/form-error';
 import logo from '../images/logo.png';
 import { Button } from '../components/button';
-import { Link, useHistory } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { signupMu, signupMuVariables } from '../__api__/signupMu';
 import { UserRole } from '../__api__/globalTypes';
+import Linking from '../components/link';
+import { Title } from '../components/title';
 
 const SIGNUP_MUTATION = gql`
   mutation signupMu($input: CreateAccountInput!) {
@@ -41,7 +43,7 @@ export const Signup = () => {
     if (ok) {
       //redirect user
       alert('Account created! Log in now!');
-      history.push('/login');
+      history.push('/');
     }
   };
   const [signupMu, { data: isSignup, loading }] = useMutation<signupMu, signupMuVariables>(SIGNUP_MUTATION, {
@@ -70,7 +72,7 @@ export const Signup = () => {
       </Helmet>
       <div className="w-full max-w-screen-sm flex flex-col items-center px-5">
         <img src={logo} alt="logo" className="w-52 mb-10" />
-        <h4 className="w-full text-left text-3xl font-medium">Let's get started</h4>
+        <Title message="Let's get started" />
         <form onSubmit={handleSubmit(onSubmit)} className="grid gap-3 mt-5 w-full mb-5">
           <input
             ref={register({
@@ -104,10 +106,7 @@ export const Signup = () => {
           {isSignup?.createAccount.error && <FormError errormessage={isSignup.createAccount.error} />}
         </form>
         <div>
-          Already have an account?{' '}
-          <Link to="/signup" className="text-lime-600 hover:underline">
-            Log in now
-          </Link>
+          Already have an account? <Linking to={'/'} message="Log in now" />
         </div>
       </div>
     </div>

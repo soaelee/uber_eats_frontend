@@ -5,10 +5,11 @@ import { FormError } from '../components/form-error';
 import { loginMu, loginMuVariables } from '../__api__/loginMu';
 import logo from '../images/logo.png';
 import { Button } from '../components/button';
-import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { authTokenVar, isLoggedInVar } from '../apollo';
 import { LOCALSTORAGE_TOKEN } from '../constants';
+import Linking from '../components/link';
+import { Title } from '../components/title';
 
 const LOGIN_MUTATION = gql`
   mutation loginMu($input: LoginInput!) {
@@ -66,7 +67,7 @@ export const Login = () => {
       </Helmet>
       <div className="w-full max-w-screen-sm flex flex-col items-center px-5">
         <img src={logo} alt="logo" className="w-52 mb-10" />
-        <h4 className="w-full text-left text-3xl font-medium">Welcome back</h4>
+        <Title message="Welcome back" />
         <form onSubmit={handleSubmit(onSubmit)} className="grid gap-3 mt-5 w-full mb-5">
           <input
             ref={register({
@@ -95,10 +96,7 @@ export const Login = () => {
           {isLogin?.login.error && <FormError errormessage={isLogin.login.error} />}
         </form>
         <div>
-          New to Suber?{' '}
-          <Link to="/signup" className="text-lime-600 hover:underline">
-            Create an Account
-          </Link>
+          New to Suber? <Linking to={'/signup'} message="Create an Account" />
         </div>
       </div>
     </div>

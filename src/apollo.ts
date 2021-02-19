@@ -1,17 +1,45 @@
-import { ApolloClient, InMemoryCache, makeVar } from '@apollo/client';
+import { ApolloClient, createHttpLink, InMemoryCache, makeVar } from '@apollo/client';
 import { LOCALSTORAGE_TOKEN } from './constants';
+import { setContext } from '@apollo/client/link/context';
 
 const token = localStorage.getItem(LOCALSTORAGE_TOKEN);
 
 export const isLoggedInVar = makeVar(Boolean(token)); //false
 export const authTokenVar = makeVar(token); //null
 
-console.log(isLoggedInVar());
-console.log(authTokenVar());
+const httpLink = createHttpLink({
+  uri: 'http://localhost:4000/graphql',
+});
+
+const authLink = setContext((_, { headers }) => {
+  return {
+    headers: {
+      ...headers,
+      'x-jwt': authTokenVar() || '',
+    },
+  };
+});
 
 export const client = new ApolloClient({
-  uri: 'http://localhost:4000/graphql',
-  cache: new InMemoryCache(),
+  link: authLink.concat(httpLink),
+  cache: new InMemoryCache({
+    typePolicies: {
+      Query: {
+        fields: {
+          isLoggedIn: {
+            read() {
+              return isLoggedInVar();
+            },
+          },
+          token: {
+            read() {
+              return authTokenVar();
+            },
+          },
+        },
+      },
+    },
+  }),
 });
 
 // local state : graphql server(schema)에는 없지만 app에서는 다루는 field, state

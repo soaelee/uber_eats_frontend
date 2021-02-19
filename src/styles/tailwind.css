@@ -5,4 +5,7 @@
   @apply focus:outline-none focus:border-gray-500 p-3 border-2  text-lg border-gray-200 transition-colors;
 }
 
+.container {
+  @apply w-full max-w-screen-xl mx-auto;
+}
 @tailwind utilities;
