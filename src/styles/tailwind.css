@@ -6,6 +6,6 @@
 }
 
 .container {
-  @apply w-full max-w-screen-xl mx-auto;
+  @apply w-full px-5 xl:px-0 max-w-screen-xl mx-auto;
 }
 @tailwind utilities;
