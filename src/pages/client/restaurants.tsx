@@ -1,6 +1,8 @@
 import { gql, useQuery } from '@apollo/client';
-import React from 'react';
+import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { Category } from '../../components/category';
+import { Restaurant } from '../../components/restaurant';
 import { restaurantsPageQuery, restaurantsPageQueryVariables } from '../../__api__/restaurantsPageQuery';
 
 const RESTAURANTS_QUERY = gql`
@@ -36,14 +38,22 @@ const RESTAURANTS_QUERY = gql`
 `;
 
 export const Restaurants = () => {
+  const [page, setPage] = useState(1);
   const { data, loading } = useQuery<restaurantsPageQuery, restaurantsPageQueryVariables>(RESTAURANTS_QUERY, {
     variables: {
       input: {
-        page: 1,
+        page,
       },
     },
   });
-  console.log(data);
+
+  const onClickNextPage = () => {
+    setPage((page) => page + 1);
+  };
+
+  const onClickPrevPage = () => {
+    setPage((page) => page - 1);
+  };
   return (
     <div>
       <Helmet>
@@ -57,17 +67,45 @@ export const Restaurants = () => {
         />
       </form>
       {!loading && (
-        <div className="container mt-10">
+        <div className="container mt-10 pb-20">
+          {/* Categories */}
           <div className="flex justify-around max-w-screen-sm mx-auto">
-            {data?.allCategories.categories?.map((category) => (
-              <div className="flex flex-col items-center cursor-pointer">
-                <div
-                  className="w-14 h-14 bg-cover rounded-full hover:opacity-70"
-                  style={{ backgroundImage: `url(${category.coverImg})` }}
-                ></div>
-                <span className="mt-2 text-sm font-medium">{category.name}</span>
-              </div>
-            ))}
+            {data?.allCategories.categories?.map((category) => {
+              if (category.coverImg) {
+                return (
+                  <Category key={category.id} id={category.id + ''} coverImg={category.coverImg} name={category.name} />
+                );
+              }
+            })}
+          </div>
+          {/* Restaurants */}
+          <div className="grid md:grid-cols-3 gap-x-5 gap-y-10 mt-16">
+            {data?.restaurants.results?.map((restaurant) => {
+              return (
+                <Restaurant
+                  coverImg={restaurant.coverImg}
+                  name={restaurant.name}
+                  key={restaurant.id}
+                  id={'' + restaurant.id}
+                  categoryName={restaurant.category?.name}
+                />
+              );
+            })}
+          </div>
+          <div className="flex justify-center items-center mt-10">
+            {page > 1 && (
+              <button className="text-2xl font-medium focus:outline-none" onClick={onClickPrevPage}>
+                &larr;
+              </button>
+            )}
+            <span className="mx-5">
+              Pages {page} of {data?.restaurants.totalPages}
+            </span>
+            {page !== data?.restaurants.totalPages && (
+              <button className="text-2xl font-medium focus:outline-none" onClick={onClickNextPage}>
+                &rarr;
+              </button>
+            )}
           </div>
         </div>
       )}
