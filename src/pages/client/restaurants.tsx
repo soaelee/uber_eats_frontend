@@ -2,7 +2,7 @@ import { gql, useQuery } from '@apollo/client';
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useForm } from 'react-hook-form';
-import { useHistory } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 import { Category } from '../../components/category';
 import { Restaurant } from '../../components/restaurant';
 import { restaurantsPageQuery, restaurantsPageQueryVariables } from '../../__api__/restaurantsPageQuery';
@@ -55,6 +55,7 @@ export const Restaurants = () => {
     },
   });
 
+  console.log(data);
   const onSearchSubmit = () => {
     const { searchTerm } = getValues();
     console.log(searchTerm);
@@ -94,7 +95,9 @@ export const Restaurants = () => {
             {data?.allCategories.categories?.map((category) => {
               if (category.coverImg) {
                 return (
-                  <Category key={category.id} id={category.id + ''} coverImg={category.coverImg} name={category.name} />
+                  <Link to={`/category/${category.slug}`} key={category.id}>
+                    <Category id={category.id + ''} coverImg={category.coverImg} name={category.name} />
+                  </Link>
                 );
               }
             })}
