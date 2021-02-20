@@ -99,6 +99,8 @@ export const Restaurants = () => {
                     <Category id={category.id + ''} coverImg={category.coverImg} name={category.name} />
                   </Link>
                 );
+              } else {
+                return null;
               }
             })}
           </div>

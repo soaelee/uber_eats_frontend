@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface ICategoryProps {
-  id: string;
+  id?: string;
   coverImg: string;
   name: string;
 }

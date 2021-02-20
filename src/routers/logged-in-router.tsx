@@ -3,7 +3,8 @@ import { BrowserRouter as Router, Switch, Route, Redirect } from 'react-router-d
 import { Header } from '../components/header';
 import { useMe } from '../hooks/useMe';
 import { NotFound } from '../pages/404';
-import { Category } from '../pages/client/category';
+import { CategoryPage } from '../pages/client/category';
+import { Restaurant } from '../pages/client/restaurant';
 import { Restaurants } from '../pages/client/restaurants';
 import { ConfirmEmail } from '../pages/user/confirm-email';
 import { EditProfile } from '../pages/user/edit-profile';
@@ -23,7 +24,10 @@ const ClientRoutes = [
     <Search />
   </Route>,
   <Route path="/category/:slug" exact key={5}>
-    <Category />
+    <CategoryPage />
+  </Route>,
+  <Route path="/restaurants/:id" exact key={6}>
+    <Restaurant />
   </Route>,
 ];
 
