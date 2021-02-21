@@ -6,31 +6,46 @@ import { NotFound } from '../pages/404';
 import { CategoryPage } from '../pages/client/category';
 import { Restaurant } from '../pages/client/restaurant';
 import { Restaurants } from '../pages/client/restaurants';
+import { MyRestaurant } from '../pages/owner/my-restaurant';
 import { ConfirmEmail } from '../pages/user/confirm-email';
 import { EditProfile } from '../pages/user/edit-profile';
 import { Search } from '../pages/user/search';
 
-const ClientRoutes = [
-  <Route path="/" exact key={1}>
-    <Restaurants />
-  </Route>,
-  <Route path="/confirm" exact key={2}>
-    <ConfirmEmail />
-  </Route>,
-  <Route path="/edit-profile" exact key={3}>
-    <EditProfile />
-  </Route>,
-  <Route path="/search" exact key={4}>
-    <Search />
-  </Route>,
-  <Route path="/category/:slug" exact key={5}>
-    <CategoryPage />
-  </Route>,
-  <Route path="/restaurants/:id" exact key={6}>
-    <Restaurant />
-  </Route>,
+const clientRoutes = [
+  {
+    path: '/',
+    component: <Restaurants />,
+  },
+  {
+    path: '/search',
+    component: <Search />,
+  },
+  {
+    path: '/category/:slug',
+    component: <CategoryPage />,
+  },
+  {
+    path: '/restaurants/:id',
+    component: <Restaurant />,
+  },
 ];
 
+const ownerRoutes = [
+  {
+    path: '/',
+    component: <MyRestaurant />,
+  },
+];
+const commonRoutes = [
+  {
+    path: '/confirm',
+    component: <ConfirmEmail />,
+  },
+  {
+    path: '/edit-profile',
+    component: <EditProfile />,
+  },
+];
 export const LoggedInRouter = () => {
   const { data, loading, error } = useMe();
   if (!data || error || loading) {
@@ -45,7 +60,21 @@ export const LoggedInRouter = () => {
     <Router>
       <Header />
       <Switch>
-        {data.me.role === 'Client' && ClientRoutes}
+        {commonRoutes.map((route) => (
+          <Route path={route.path}>{route.component}</Route>
+        ))}
+        {data.me.role === 'Client' &&
+          clientRoutes.map((route) => (
+            <Route key={route.path} path={route.path}>
+              {route.component}
+            </Route>
+          ))}
+        {data.me.role === 'Owner' &&
+          ownerRoutes.map((route) => (
+            <Route key={route.path} path={route.path}>
+              {route.component}
+            </Route>
+          ))}
         {/* <Redirect to="/" /> */}
         {/* from="potato"하면 potato일때만 */}
         <Route path="/">
