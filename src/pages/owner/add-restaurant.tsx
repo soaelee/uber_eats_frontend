@@ -7,7 +7,7 @@ import { Button } from '../../components/button';
 import { FormError } from '../../components/form-error';
 import { Title } from '../../components/title';
 import { createRestaurantMu, createRestaurantMuVariables } from '../../__api__/createRestaurantMu';
-import { MyRestaurant, MY_RESTAURANTS_QUE } from './my-restaurant';
+import { MY_RESTAURANTS_QUE } from './my-restaurants';
 
 const CREATE_RESTAURANT_MU = gql`
   mutation createRestaurantMu($input: CreateRestaurantInput!) {

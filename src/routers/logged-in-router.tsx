@@ -6,8 +6,10 @@ import { NotFound } from '../pages/404';
 import { CategoryPage } from '../pages/client/category';
 import { Restaurant } from '../pages/client/restaurant';
 import { Restaurants } from '../pages/client/restaurants';
+import { AddDish } from '../pages/owner/add-dish';
 import { AddRestaurant } from '../pages/owner/add-restaurant';
 import { MyRestaurant } from '../pages/owner/my-restaurant';
+import { MyRestaurants } from '../pages/owner/my-restaurants';
 import { ConfirmEmail } from '../pages/user/confirm-email';
 import { EditProfile } from '../pages/user/edit-profile';
 import { Search } from '../pages/user/search';
@@ -34,11 +36,19 @@ const clientRoutes = [
 const ownerRoutes = [
   {
     path: '/',
-    component: <MyRestaurant />,
+    component: <MyRestaurants />,
   },
   {
     path: '/add-restaurant',
     component: <AddRestaurant />,
+  },
+  {
+    path: '/my-restaurant/:id',
+    component: <MyRestaurant />,
+  },
+  {
+    path: '/add-dish/:restaurantId',
+    component: <AddDish />,
   },
 ];
 const commonRoutes = [

@@ -6,10 +6,11 @@ interface IRestaurantProps {
   name: string;
   categoryName?: string;
   id: string;
+  to?: string;
 }
-export const Restaurant: React.FC<IRestaurantProps> = ({ coverImg, name, categoryName, id }) => {
+export const Restaurant: React.FC<IRestaurantProps> = ({ coverImg, name, categoryName, id, to }) => {
   return (
-    <Link to={`/restaurants/${id}`}>
+    <Link to={to ? `/my-restaurant/${id}` : `/restaurants/${id}`}>
       <div className="flex flex-col">
         <div className="bg-red-500 py-28 bg-cover bg-center mb-2" style={{ backgroundImage: `url(${coverImg})` }}></div>
         <h3 className="text-xl font-medium">{name}</h3>
