@@ -6,6 +6,7 @@ import { NotFound } from '../pages/404';
 import { CategoryPage } from '../pages/client/category';
 import { Restaurant } from '../pages/client/restaurant';
 import { Restaurants } from '../pages/client/restaurants';
+import { AddRestaurant } from '../pages/owner/add-restaurant';
 import { MyRestaurant } from '../pages/owner/my-restaurant';
 import { ConfirmEmail } from '../pages/user/confirm-email';
 import { EditProfile } from '../pages/user/edit-profile';
@@ -35,6 +36,10 @@ const ownerRoutes = [
     path: '/',
     component: <MyRestaurant />,
   },
+  {
+    path: '/add-restaurant',
+    component: <AddRestaurant />,
+  },
 ];
 const commonRoutes = [
   {
@@ -61,23 +66,25 @@ export const LoggedInRouter = () => {
       <Header />
       <Switch>
         {commonRoutes.map((route) => (
-          <Route path={route.path}>{route.component}</Route>
+          <Route key={route.path} path={route.path} exact>
+            {route.component}
+          </Route>
         ))}
         {data.me.role === 'Client' &&
           clientRoutes.map((route) => (
-            <Route key={route.path} path={route.path}>
+            <Route key={route.path} exact path={route.path}>
               {route.component}
             </Route>
           ))}
         {data.me.role === 'Owner' &&
           ownerRoutes.map((route) => (
-            <Route key={route.path} path={route.path}>
+            <Route key={route.path} exact path={route.path}>
               {route.component}
             </Route>
           ))}
         {/* <Redirect to="/" /> */}
         {/* from="potato"하면 potato일때만 */}
-        <Route path="/">
+        <Route>
           <NotFound />
         </Route>
       </Switch>
