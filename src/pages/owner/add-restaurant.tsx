@@ -95,7 +95,6 @@ export const AddRestaurant = () => {
           },
         },
       });
-      console.log(coverImg);
     } catch (e) {
       console.log(e);
     }
