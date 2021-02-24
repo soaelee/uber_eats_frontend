@@ -26,35 +26,61 @@ interface IForm {
   name: string;
   price: string;
   description: string;
+  file: string;
   [key: string]: string;
 }
 export const AddDish = () => {
   const [optionsNumber, setOptionsNumber] = useState<number[]>([]);
   const { restaurantId } = useParams<IParam>();
+  const [uploading, setUploading] = useState(false);
   const history = useHistory();
+  const onCompleted = (data: createDishMu) => {
+    const {
+      createDish: { ok },
+    } = data;
+    if (ok) {
+      setUploading(false);
+    }
+  };
   const [createDishMu, { data, loading }] = useMutation<createDishMu, createDishMuVariables>(CREATE_DISH_MU, {
     refetchQueries: [{ query: MY_RESTAURANT_QUE, variables: { input: { id: +restaurantId } } }],
+    onCompleted,
   });
   const { register, handleSubmit, getValues, formState } = useForm<IForm>({ mode: 'onChange' });
-  const onSubmit = () => {
-    const { name, price, description, ...rest } = getValues();
-    const optionObjs = optionsNumber.map((id) => ({
-      name: rest[`${id}-optionName`],
-      extra: +rest[`${id}-optionExtra`],
-    }));
-    console.log(rest);
-    createDishMu({
-      variables: {
-        input: {
-          name,
-          description,
-          price: +price,
-          restaurantId: +restaurantId,
-          options: optionObjs,
+  const onSubmit = async () => {
+    try {
+      setUploading(true);
+      const { name, price, description, file, ...rest } = getValues();
+      const actualFile = file[0];
+      const formBody = new FormData();
+      formBody.append('file', actualFile);
+      const { url: photo } = await (
+        await fetch('http://localhost:4000/uploads/', {
+          method: 'POST',
+          body: formBody,
+        })
+      ).json();
+
+      const optionObjs = optionsNumber.map((id) => ({
+        name: rest[`${id}-optionName`],
+        extra: +rest[`${id}-optionExtra`],
+      }));
+      createDishMu({
+        variables: {
+          input: {
+            name,
+            description,
+            price: +price,
+            restaurantId: +restaurantId,
+            options: optionObjs,
+            photo,
+          },
         },
-      },
-    });
-    history.goBack();
+      });
+      history.goBack();
+    } catch (e) {
+      console.log(e);
+    }
   };
   const onAddOptionClick = () => {
     setOptionsNumber((current) => [Date.now(), ...current]);
@@ -90,6 +116,7 @@ export const AddDish = () => {
           placeholder="Description"
           ref={register({ required: 'Name is required' })}
         />
+        <input type="file" name="file" accept="image/" ref={register({ required: 'Image is required' })} />
         <div className="my-10">
           <h4 className="font-medium mb-3 text-lg">Dish Options</h4>
           <span onClick={onAddOptionClick} className="cursor-pointer text-white bg-gray-900 py-1 px-2 mt-5">
@@ -121,7 +148,7 @@ export const AddDish = () => {
               </div>
             ))}
         </div>
-        <Button loading={loading} canClick={formState.isValid} actionText="Create Dish" />
+        <Button loading={uploading} canClick={formState.isValid} actionText="Create Dish" />
         {data?.createDish.error && <FormError errormessage={data.createDish.error} />}
       </form>
     </div>

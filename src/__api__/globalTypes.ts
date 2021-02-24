@@ -26,6 +26,7 @@ export interface CreateAccountInput {
 
 export interface CreateDishInput {
   name: string;
+  photo?: string | null;
   price: number;
   description: string;
   options?: DishOptionInputType[] | null;

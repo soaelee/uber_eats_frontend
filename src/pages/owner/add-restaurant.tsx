@@ -134,13 +134,7 @@ export const AddRestaurant = () => {
           />
           {errors?.categoryName?.message && <FormError errormessage={errors.categoryName.message} />}
           <div>
-            <input
-              className="border-0"
-              type="file"
-              accept="image/"
-              name="file"
-              ref={register({ required: 'Cover image is required' })}
-            />
+            <input type="file" accept="image/" name="file" ref={register({ required: 'Cover image is required' })} />
           </div>
           <Button canClick={formState.isValid} actionText="Create" loading={uploading} />
           {data?.createRestaurant.error && <FormError errormessage={data.createRestaurant.error} />}

@@ -2,6 +2,7 @@ import { gql, useQuery } from '@apollo/client';
 import { data } from 'autoprefixer';
 import React, { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { Dish } from '../../components/dish';
 import Linking from '../../components/link';
 import { Title } from '../../components/title';
 import { myRestaurant, myRestaurantVariables } from '../../__api__/myRestaurant';
@@ -79,7 +80,13 @@ export const MyRestaurant = () => {
               <h4 className="text-xl mb-5">Please upload a dish.</h4>
               <Linking to={`/restaurant/${data?.myRestaurant.restaurant?.id}/add-dish`} message="Create order &rarr;" />
             </>
-          ) : null}
+          ) : (
+            <div className="grid md:grid-cols-3 mb-16 gap-x-5 gap-y-10">
+              {data?.myRestaurant.restaurant?.menu.map((dish) => (
+                <Dish name={dish.name} description={dish.description} price={dish.price} />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
