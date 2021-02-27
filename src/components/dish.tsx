@@ -46,7 +46,12 @@ export const Dish: React.FC<IDishProps> = ({
         <h3 className="text-lg font-medium flex justify-between items-center">
           {name}{' '}
           {orderStarted && (
-            <button className="btn px-5 rounded py-2" onClick={onClick}>
+            <button
+              className={`ml-3 py-1 px-3 focus:outline-none text-sm  text-white ${
+                isSelected ? 'bg-red-500' : ' bg-lime-600'
+              }`}
+              onClick={onClick}
+            >
               {isSelected ? 'Remove' : 'Add'}
             </button>
           )}
@@ -54,12 +59,7 @@ export const Dish: React.FC<IDishProps> = ({
         <h4 className="font-medium">{description}</h4>
       </div>
       <span>${price}</span>
-      {isCustomer && options?.length !== 0 && (
-        <div>
-          <h5 className="mt-8 mb-3 font-medium">Dish Options:</h5>
-          {dishOptions}
-        </div>
-      )}
+      {isCustomer && options?.length !== 0 && <div className="grid gap-2  justify-start">{dishOptions}</div>}
     </div>
   );
 };

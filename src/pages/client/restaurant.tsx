@@ -1,16 +1,18 @@
 import { gql, useQuery, useMutation } from '@apollo/client';
 import React, { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useHistory, useParams } from 'react-router-dom';
 import { Dish } from '../../components/dish';
 import { restaurantQue, restaurantQueVariables } from '../../__api__/restaurantQue';
 import { createOrderMu, createOrderMuVariables } from '../../__api__/createOrderMu';
 import { CreateOrderItemInput } from '../../__api__/globalTypes';
+import { DishOption } from '../../components/dish-option';
 
 const CREATE_ORDER_MU = gql`
   mutation createOrderMu($input: CreateOrderInput!) {
     createOrder(input: $input) {
       ok
       error
+      orderId
     }
   }
 `;
@@ -49,6 +51,7 @@ interface IPramsProps {
   id: string;
 }
 export const Restaurant = () => {
+  const history = useHistory();
   const params = useParams<IPramsProps>();
   const { data, loading } = useQuery<restaurantQue, restaurantQueVariables>(RESTAURANT_QUE, {
     variables: {
@@ -57,8 +60,20 @@ export const Restaurant = () => {
       },
     },
   });
+  const onCompleted = (data: createOrderMu) => {
+    const {
+      createOrder: { ok, orderId },
+    } = data;
+    if (ok) {
+      alert('Created Order');
+      history.push(`/orders/${orderId}`);
+    }
+  };
   const [orderItems, setOrderItems] = useState<CreateOrderItemInput[]>([]);
-  const [createOrderMu] = useMutation<createOrderMu, createOrderMuVariables>(CREATE_ORDER_MU);
+  const [createOrderMu, { loading: placingOrder }] = useMutation<createOrderMu, createOrderMuVariables>(
+    CREATE_ORDER_MU,
+    { onCompleted }
+  );
   const [orderStarted, setOrderStarted] = useState(false);
   const isSelected = (dishId: number) => {
     return Boolean(orderItems.find((order) => order.dishId === dishId));
@@ -77,19 +92,20 @@ export const Restaurant = () => {
     return orderItems.find((order) => order.dishId === dishId);
   };
 
-  const addOptionToItem = (dishId: number, option: any) => {
+  const addOptionToItem = (dishId: number, optionName: string) => {
     if (!isSelected(dishId)) {
       return;
     }
     const prevOrder = getItem(dishId);
     if (prevOrder) {
-      const hasOption = Boolean(prevOrder?.options?.find((opt) => opt.name === option.name));
+      const hasOption = Boolean(prevOrder?.options?.find((opt) => opt.name === optionName));
       if (!hasOption) {
         removeFromOrder(dishId);
-        setOrderItems((cur) => [{ dishId, options: [option, ...prevOrder.options!] }, ...cur]);
+        setOrderItems((cur) => [{ dishId, options: [{ name: optionName }, ...prevOrder.options!] }, ...cur]);
       }
     }
   };
+
   const getOptionFromItem = (item: CreateOrderItemInput, optionName: string) => {
     return item.options?.find((option) => option.name === optionName);
   };
@@ -98,8 +114,49 @@ export const Restaurant = () => {
     if (item) {
       return Boolean(getOptionFromItem(item, optionName));
     }
+    return false;
   };
-  console.log(orderItems);
+  const removeOptionFromitem = (dishId: number, optionName: string) => {
+    if (!isSelected(dishId)) {
+      return;
+    }
+    const prevOrder = getItem(dishId);
+    if (prevOrder) {
+      removeFromOrder(dishId);
+      setOrderItems((cur) => [
+        {
+          dishId,
+          options: prevOrder.options?.filter((option) => option.name !== optionName),
+        },
+        ...cur,
+      ]);
+      return;
+    }
+  };
+  const triggerCancelOrder = () => {
+    setOrderStarted(false);
+    setOrderItems([]);
+  };
+  const triggerConfirmOrder = () => {
+    if (placingOrder) {
+      return;
+    }
+    if (orderItems.length === 0) {
+      alert("Can't place empty order");
+      return;
+    }
+    const ok = window.confirm('You are about to place an order');
+    if (ok) {
+      createOrderMu({
+        variables: {
+          input: {
+            restaurantId: +params.id,
+            items: orderItems,
+          },
+        },
+      });
+    }
+  };
   return (
     <div>
       <div
@@ -115,9 +172,21 @@ export const Restaurant = () => {
         </div>
       </div>
       <div className="container pb-32 flex flex-col items-end mt-20">
-        <button onClick={triggerStartOrder} className="btn px-10">
-          {orderStarted ? 'Ordering' : 'Start Order'}
-        </button>
+        {!orderStarted && (
+          <button onClick={triggerStartOrder} className="btn px-10">
+            Start Order
+          </button>
+        )}
+        {orderStarted && (
+          <div className="flex items-center">
+            <button onClick={triggerConfirmOrder} className="mr-3 btn px-10">
+              Confirm Order
+            </button>
+            <button onClick={triggerCancelOrder} className="btn bg-black hover:bg-black px-10">
+              Cancel Order
+            </button>
+          </div>
+        )}
         <div className="w-full grid mt-16 md:grid-cols-3 gap-x-5 gap-y-10">
           {data?.restaurant.restaurant?.menu.map((dish, index) => (
             <Dish
@@ -134,22 +203,14 @@ export const Restaurant = () => {
               removeFromOrder={removeFromOrder}
             >
               {dish.options?.map((option, index) => (
-                <span
-                  onClick={() =>
-                    addOptionToItem
-                      ? addOptionToItem(dish.id, {
-                          name: option.name,
-                        })
-                      : null
-                  }
-                  className={`flex border items-center ${
-                    isOptionSelected(dish.id, option.name) ? 'border-gray-800' : ''
-                  }`}
+                <DishOption
                   key={index}
-                >
-                  <h6 className="mr-2">{option.name}</h6>
-                  <h6 className="text-sm opacity-75">(${option.extra})</h6>
-                </span>
+                  addOptionToItem={addOptionToItem}
+                  removeOptionFromItem={removeOptionFromitem}
+                  dishId={dish.id}
+                  option={option}
+                  isSelected={isOptionSelected(dish.id, option.name)}
+                />
               ))}
             </Dish>
           ))}
