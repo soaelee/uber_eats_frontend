@@ -1,8 +1,9 @@
-import { gql, useQuery } from '@apollo/client';
-import React from 'react';
+import { gql, useQuery, useSubscription } from '@apollo/client';
+import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useParams } from 'react-router-dom';
 import { getOrderQu, getOrderQuVariables } from '../../__api__/getOrderQu';
+import { orderUpdates, orderUpdatesVariables } from '../../__api__/orderUpdates';
 
 const GET_ORDER = gql`
   query getOrderQu($input: GetOrderInput!) {
@@ -28,18 +29,72 @@ const GET_ORDER = gql`
     }
   }
 `;
+
+const ORDER_SUBSCRIPTIOM = gql`
+  subscription orderUpdates($input: OrderUpdatesInput!) {
+    orderUpdates(input: $input) {
+      id
+      createdAt
+      updateAt
+      customer {
+        email
+      }
+      driver {
+        email
+      }
+      restaurant {
+        name
+      }
+      total
+      status
+    }
+  }
+`;
+
 interface IParams {
   id: string;
 }
 export const Order = () => {
   const { id } = useParams<IParams>();
-  const { data } = useQuery<getOrderQu, getOrderQuVariables>(GET_ORDER, {
+  const { data: subscriptionData } = useSubscription<orderUpdates, orderUpdatesVariables>(ORDER_SUBSCRIPTIOM, {
     variables: {
       input: {
         id: +id,
       },
     },
   });
+  const { data, subscribeToMore } = useQuery<getOrderQu, getOrderQuVariables>(GET_ORDER, {
+    variables: {
+      input: {
+        id: +id,
+      },
+    },
+  });
+
+  useEffect(() => {
+    if (data?.getOrder.ok) {
+      subscribeToMore({
+        document: ORDER_SUBSCRIPTIOM,
+        variables: {
+          input: {
+            id: +id,
+          },
+        },
+        // data를 덮어씌워서 query로 받은 데이터를 subscription 데이터로 교체
+        updateQuery: (prev, { subscriptionData: { data } }: { subscriptionData: { data: orderUpdates } }) => {
+          if (!data) return prev;
+          return {
+            getOrder: {
+              ...prev.getOrder,
+              order: {
+                ...data.orderUpdates,
+              },
+            },
+          };
+        },
+      });
+    }
+  }, [data]);
   return (
     <div className="container mt-32 flex justify-center ">
       <Helmet>
