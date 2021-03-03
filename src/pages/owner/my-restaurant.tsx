@@ -1,12 +1,13 @@
-import { gql, useQuery } from '@apollo/client';
+import { gql, useQuery, useSubscription } from '@apollo/client';
 import { data } from 'autoprefixer';
 import React, { useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useHistory, useParams } from 'react-router-dom';
 import { Dish } from '../../components/dish';
 import Linking from '../../components/link';
 import { Title } from '../../components/title';
 import { myRestaurant, myRestaurantVariables } from '../../__api__/myRestaurant';
 import { VictoryChart, VictoryVoronoiContainer, VictoryAxis, VictoryLine, VictoryTheme, VictoryLabel } from 'victory';
+import { pendingOrders } from '../../__api__/pendingOrders';
 export const MY_RESTAURANT_QUE = gql`
   query myRestaurant($input: MyRestaurantInput!) {
     myRestaurant(input: $input) {
@@ -47,20 +48,33 @@ export const MY_RESTAURANT_QUE = gql`
   }
 `;
 
+const PENDING_ORDERS_SUBSCRIPTIOM = gql`
+  subscription pendingOrders {
+    pendingOrders {
+      id
+      createdAt
+      updateAt
+      customer {
+        email
+      }
+      driver {
+        email
+      }
+      restaurant {
+        name
+      }
+      total
+      status
+    }
+  }
+`;
 interface IParams {
   id: string;
 }
 
-const chartData = [
-  { x: 1, y: 3000 },
-  { x: 2, y: 1500 },
-  { x: 3, y: 4250 },
-  { x: 4, y: 2300 },
-  { x: 5, y: 7150 },
-  { x: 6, y: 3000 },
-];
 export const MyRestaurant = () => {
   const { id } = useParams<IParams>();
+  const { data: subscriptionData } = useSubscription<pendingOrders>(PENDING_ORDERS_SUBSCRIPTIOM);
   const { data } = useQuery<myRestaurant, myRestaurantVariables>(MY_RESTAURANT_QUE, {
     variables: {
       input: {
@@ -68,6 +82,12 @@ export const MyRestaurant = () => {
       },
     },
   });
+  const history = useHistory();
+  useEffect(() => {
+    if (subscriptionData?.pendingOrders.id) {
+      history.push(`/orders/${subscriptionData.pendingOrders.id}`);
+    }
+  }, [subscriptionData, history]);
   console.log(data);
   return (
     <div>

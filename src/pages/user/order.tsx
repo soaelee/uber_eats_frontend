@@ -1,8 +1,11 @@
-import { gql, useQuery, useSubscription } from '@apollo/client';
+import { gql, useMutation, useQuery, useSubscription } from '@apollo/client';
 import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useParams } from 'react-router-dom';
+import { useMe } from '../../hooks/useMe';
+import { editOrderMu, editOrderMuVariables } from '../../__api__/editOrderMu';
 import { getOrderQu, getOrderQuVariables } from '../../__api__/getOrderQu';
+import { OrderStatus, UserRole } from '../../__api__/globalTypes';
 import { orderUpdates, orderUpdatesVariables } from '../../__api__/orderUpdates';
 
 const GET_ORDER = gql`
@@ -51,11 +54,21 @@ const ORDER_SUBSCRIPTIOM = gql`
   }
 `;
 
+const EDIT_ORDER_MU = gql`
+  mutation editOrderMu($input: EditOrderInput!) {
+    editOrder(input: $input) {
+      ok
+      error
+    }
+  }
+`;
 interface IParams {
   id: string;
 }
 export const Order = () => {
+  const { data: user } = useMe();
   const { id } = useParams<IParams>();
+  const [editOrderMu] = useMutation<editOrderMu, editOrderMuVariables>(EDIT_ORDER_MU);
   const { data: subscriptionData } = useSubscription<orderUpdates, orderUpdatesVariables>(ORDER_SUBSCRIPTIOM, {
     variables: {
       input: {
@@ -95,6 +108,18 @@ export const Order = () => {
       });
     }
   }, [data]);
+
+  const onButtonClick = (newStatus: OrderStatus) => {
+    // only for owner
+    editOrderMu({
+      variables: {
+        input: {
+          id: +id,
+          status: newStatus,
+        },
+      },
+    });
+  };
   return (
     <div className="container mt-32 flex justify-center ">
       <Helmet>
@@ -114,7 +139,29 @@ export const Order = () => {
             Driver: <span className="font-medium">{data?.getOrder.order?.driver?.email || 'Not yet.'}</span>
           </div>
         </div>
-        <span className=" text-center mt-5 mb-3  text-2xl text-lime-600">Status: {data?.getOrder.order?.status}</span>
+        {user?.me.role === UserRole.Client && (
+          <span className=" text-center mt-5 mb-3  text-2xl text-lime-600">Status: {data?.getOrder.order?.status}</span>
+        )}
+        {user?.me.role === UserRole.Owner && (
+          <>
+            {data?.getOrder.order?.status === OrderStatus.Pending && (
+              <button onClick={() => onButtonClick(OrderStatus.Cooking)} className="btn">
+                Accept order
+              </button>
+            )}
+            {data?.getOrder.order?.status === OrderStatus.Cooking && (
+              <button onClick={() => onButtonClick(OrderStatus.Cooked)} className="btn">
+                Order Cooked
+              </button>
+            )}
+            {data?.getOrder.order?.status !== OrderStatus.Pending &&
+              data?.getOrder.order?.status !== OrderStatus.Cooking && (
+                <span className=" text-center mt-5 mb-3  text-2xl text-lime-600">
+                  Status: {data?.getOrder.order?.status}
+                </span>
+              )}
+          </>
+        )}
       </div>
     </div>
   );
